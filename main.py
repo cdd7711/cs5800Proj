@@ -36,7 +36,7 @@ def main():
     # gets, validates, and opens PDA file. same pda file for each string
     while True:
         try:
-            pdaFile = open(input("What PDA text file do you want to open?\n"), "r")
+            pdaFile = input("What PDA text file do you want to open?\n")
             break
         except FileNotFoundError:
             print('That is not a valid file name. An example file is "pg224.txt"')
@@ -52,16 +52,18 @@ def main():
     # for each line in string file, send PDA and string to runPDA
     for line in stringFile:
         # todo: make run for empty strings
+        openPDA = open(pdaFile, 'r')
+        pdaClass = fillPDA(openPDA)
+        openPDA.close()
 
-        pdaClass = fillPDA(pdaFile)
         result = runPDA(pdaClass, line.strip("\n"))
         if result is True:
-            print("Your PDA with string", line.strip("\n"), "was accepted.")
+            print("Your PDA with string '", line.strip("\n"), " ' was accepted.", sep='')
         else:
-            print("Your PDA with string", line.strip("\n"), "was NOT accepted.")
+            print("Your PDA with string '", line.strip("\n"), "' was NOT accepted.", sep='')
 
     # close files
-    pdaFile.close()
+
     stringFile.close()
 
 
@@ -76,25 +78,37 @@ def runPDA(pda, string):
                 return True
             else:
                 value = None
+                pop = False
                 try:
                     value = pda.transitions[(currentState, '', pda.getStackHead())]
+                    if pda.getStackHead() != '':
+                        pop = True
                 except KeyError:
                     pass
 
-                if value is not None:
+                try:
+                    value = pda.transitions[(currentState, '', '')]
+                except KeyError:
+                    pass
+
+                if value is not None:  # take transition
                     currentState = value[0]
                     pda.setHead(value[1])
-                    if pda.getStackHead() != '':
+                    if pop:
                         pda.stackPop()
                 else:  # no transitions possible
                     return False
-        else:
-            # string not processed still
-            value = None
-            char = None
+
+        else:  # string not processed still
+            value = None  # denotes transition found. (new state, new stack head)
+            char = None  # denotes a string char being processed
+            pop = False  # Denotes transition found requires popping the stack
+
             try:
                 value = pda.transitions[(currentState, string[processedStr], pda.getStackHead())]
                 char = 1
+                if pda.getStackHead() != '':
+                    pop = True
             except KeyError:
                 pass
 
@@ -106,11 +120,13 @@ def runPDA(pda, string):
 
             try:
                 value = pda.transitions[(currentState, '', pda.getStackHead())]
+                if pda.getStackHead() != '':
+                    pop = True
             except KeyError:
                 pass
 
             if value is not None:
-                if pda.getStackHead() != '':
+                if pop:
                     pda.stackPop()
                 currentState = value[0]
                 pda.setHead(value[1])
