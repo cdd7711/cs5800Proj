@@ -8,31 +8,28 @@ class PDA:
         self.startState = start
         self.acceptingStates = accepting
         self.states = states
-        self.currentState = self.startState
 
     # todo: finish/organize methods. Delete any not needed
+    def getStartState(self):
+        return self.startState
 
-    # getStackLang might not be needed
-    def getStackLang(self):
-    # maybe make this a function that takes a char and returns if it is an element of the stack string?
-        return self.stackLang
+    def getStackLen(self):
+        return len(self.stack)
 
     def getStackHead(self):
-        return self.stack[-1]
+        if len(self.stack) == 0:
+            return ''
+        else:
+            return self.stack[-1]
 
-    def stackAppend(self, char):
-        # adds to stack (at end of the list)
-        self.stack.append(char)
+    def setHead(self, head):
+        if head == '':
+            pass
+        else:
+            self.stack.append(head)
 
     def stackPop(self):
-        # todo: do we want to make this a function that tests if you can pop (a given char) and returns T/F if popped?
         self.stack.pop()
-
-    def inAccepting(self, state):
-        # todo: return if state is in self.acceptingStates
-
-    def setState(self, state):
-        self.currentState = state
 
 
 def main():
@@ -54,6 +51,8 @@ def main():
 
     # for each line in string file, send PDA and string to runPDA
     for line in stringFile:
+        # todo: make run for empty strings
+
         pdaClass = fillPDA(pdaFile)
         result = runPDA(pdaClass, line.strip("\n"))
         if result is True:
@@ -67,9 +66,59 @@ def main():
 
 
 def runPDA(pda, string):
-    # todo: fill this in recursively to run through the given PDA (class) with a string
-    # todo: return True/False bool value if accepted true
-    # todo: Possibly test that each terminal and stack char are elements of their languages
+    # return True/False bool value if accepted true
+
+    currentState = pda.getStartState()
+    processedStr = 0
+    while True:
+        if processedStr == len(string):  # only possible transitions are with null string
+            if currentState in pda.acceptingStates and pda.getStackLen() == 0:
+                return True
+            else:
+                value = None
+                try:
+                    value = pda.transitions[(currentState, '', pda.getStackHead())]
+                except KeyError:
+                    pass
+
+                if value is not None:
+                    currentState = value[0]
+                    pda.setHead(value[1])
+                    if pda.getStackHead() != '':
+                        pda.stackPop()
+                else:  # no transitions possible
+                    return False
+        else:
+            # string not processed still
+            value = None
+            char = None
+            try:
+                value = pda.transitions[(currentState, string[processedStr], pda.getStackHead())]
+                char = 1
+            except KeyError:
+                pass
+
+            try:
+                value = pda.transitions[(currentState, string[processedStr], '')]
+                char = 1
+            except KeyError:
+                pass
+
+            try:
+                value = pda.transitions[(currentState, '', pda.getStackHead())]
+            except KeyError:
+                pass
+
+            if value is not None:
+                if pda.getStackHead() != '':
+                    pda.stackPop()
+                currentState = value[0]
+                pda.setHead(value[1])
+                if char is not None:
+                    processedStr += 1
+
+            else:
+                return False
 
 
 def fillPDA(pdaFile):
