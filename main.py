@@ -1,35 +1,41 @@
 
 class PDA:
     def __init__(self, stackLang, terminalLang, transitions, start, accepting, states):
-        self.stack = []
-        self.stackLang = stackLang
-        self.terminalLang = terminalLang
-        self.transitions = transitions
-        self.startState = start
-        self.acceptingStates = accepting
-        self.states = states
+        self.__stack = []
+        self.__stackLang = stackLang
+        self.__terminalLang = terminalLang
+        self.__transitions = transitions
+        self.__startState = start
+        self.__acceptingStates = accepting
+        self.__states = states
 
     # todo: finish/organize methods. Delete any not needed
     def getStartState(self):
-        return self.startState
+        return self.__startState
+
+    def getAcceptingStates(self):
+        return self.__acceptingStates
+
+    def getTransitions(self):
+        return self.__transitions
 
     def getStackLen(self):
-        return len(self.stack)
+        return len(self.__stack)
 
     def getStackHead(self):
-        if len(self.stack) == 0:
+        if len(self.__stack) == 0:
             return ''
         else:
-            return self.stack[-1]
+            return self.__stack[-1]
 
     def setHead(self, head):
         if head == '':
             pass
         else:
-            self.stack.append(head)
+            self.__stack.append(head)
 
     def stackPop(self):
-        self.stack.pop()
+        self.__stack.pop()
 
 
 def main():
@@ -74,20 +80,20 @@ def runPDA(pda, string):
     processedStr = 0
     while True:
         if processedStr == len(string):  # only possible transitions are with null string
-            if currentState in pda.acceptingStates and pda.getStackLen() == 0:
+            if currentState in pda.getAcceptingStates() and pda.getStackLen() == 0:
                 return True
             else:
                 value = None
                 pop = False
                 try:
-                    value = pda.transitions[(currentState, '', pda.getStackHead())]
+                    value = pda.getTransitions()[(currentState, '', pda.getStackHead())]
                     if pda.getStackHead() != '':
                         pop = True
                 except KeyError:
                     pass
 
                 try:
-                    value = pda.transitions[(currentState, '', '')]
+                    value = pda.getTransitions()[(currentState, '', '')]
                 except KeyError:
                     pass
 
@@ -105,7 +111,7 @@ def runPDA(pda, string):
             pop = False  # Denotes transition found requires popping the stack
 
             try:
-                value = pda.transitions[(currentState, string[processedStr], pda.getStackHead())]
+                value = pda.getTransitions()[(currentState, string[processedStr], pda.getStackHead())]
                 char = 1
                 if pda.getStackHead() != '':
                     pop = True
@@ -113,13 +119,13 @@ def runPDA(pda, string):
                 pass
 
             try:
-                value = pda.transitions[(currentState, string[processedStr], '')]
+                value = pda.getTransitions()[(currentState, string[processedStr], '')]
                 char = 1
             except KeyError:
                 pass
 
             try:
-                value = pda.transitions[(currentState, '', pda.getStackHead())]
+                value = pda.getTransitions()[(currentState, '', pda.getStackHead())]
                 if pda.getStackHead() != '':
                     pop = True
             except KeyError:
